@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ovod
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: gitlab-docker-secret
+      volumes:
+        - name: shared-memory
+          emptyDir:
+            medium: Memory
+        - name: dataset-volume
+          persistentVolumeClaim:
+            claimName: shan
+      containers:
+        - name: ovod
+          image: docker.aiml.team/products/aiml/docker-example/pytorch-2.3.1-cuda12.1-cudnn8-devel:latest
+          stdin: true
+          tty: true
+          command: ["sleep", "infinity"]  # Keep the container running without doing anything
+          ports:
+            - containerPort: 22  # Expose SSH port if you need SSH
+          volumeMounts:
+            - name: dataset-volume
+              mountPath: /data
+            - name: shared-memory
+              mountPath: /dev/shm
+          env:
+            - name: GITLAB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab-token
+                  key: access-token
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ssh-service
+spec:
+  selector:
+    job-name: ovod  # Ensure this matches the job's metadata.name
+  ports:
+    - protocol: TCP
+      port: 32222     # External port for SSH
+      targetPort: 22  # Internal SSH port
+  type: LoadBalancer
