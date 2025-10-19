@@ -1,5 +1,6 @@
-./data/coco
-./data/OWOD/Annotations
-./data/OWOD/JPEGImages
+data/coco
+data/OWOD/Annotations
+data/OWOD/JPEGImages
 
-./models/dino_resnet50_pretrain.pth
+models/dino_resnet50_pretrain.pth
+
